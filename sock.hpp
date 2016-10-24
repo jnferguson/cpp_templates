@@ -1,5 +1,3 @@
-// XXX JF test me
-
 #ifndef HAVE_SOCKET_HPP
 #define HAVE_SOCKET_HPP
 
@@ -7,11 +5,14 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <vector>
+#include <limits>
 #include <stdexcept>
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <unistd.h>
 
 
 class sock_t {
@@ -21,7 +22,6 @@ class sock_t {
         public:
                 sock_t(void) : m_sock(-1)
                 {
-                        return
                 }
 
                 virtual ~sock_t(void)
@@ -35,23 +35,23 @@ class sock_t {
                 }
 
                 virtual bool
-                connect(const std::string& h, uint16_t p)
+                connect(const std::string& h, const std::string& p)
                 {
                         signed int              ret(0);
                         struct addrinfo         hints = {0};
                         struct addrinfo*        sinfo(nullptr);
 
-                        hints.ai_family         = AF_UNSPEC
+                        hints.ai_family         = AF_UNSPEC;
                         hints.ai_socktype       = SOCK_STREAM;
                         hints.ai_flags          = AI_PASSIVE;
 
-                        if (::getaddrinfo(nullptr, p, &hints, &sinfo))
+                        if (::getaddrinfo(nullptr, p.c_str(), &hints, &sinfo))
                                 return false;
 
 
                         m_sock = ::socket(sinfo->ai_family, sinfo->ai_socktype, sinfo->ai_protocol);
 
-                       if (0 > m_soc) {
+                        if (0 > m_sock) {
                                 ret = errno;
                                 ::freeaddrinfo(sinfo);
                                 errno = ret;
@@ -59,7 +59,7 @@ class sock_t {
                         }
 
 
-                        if (0 > ::connect(m_sock, sinfo->ai_family, res->ai_protocol)) {
+                        if (0 > ::connect(m_sock, sinfo->ai_addr, sinfo->ai_protocol)) {
                                 ret = errno;
                                 ::freeaddrinfo(sinfo);
                                 errno = ret;
@@ -67,6 +67,7 @@ class sock_t {
                         }
 
                         ::freeaddrinfo(sinfo);
+                        return true;
                         return true;
                 }
 
@@ -101,11 +102,11 @@ class sock_t {
                 }
 
                 virtual bool
-                read(std::string& s, len = 8192)
-               {
+                read(std::string& s, std::size_t len = 8192)
+                {
                         std::vector< uint8_t > d;
 
-                        if (0 > this->read(d, len)
+                        if (0 > this->read(d, len))
                                 return false;
 
                         s.clear();
@@ -153,7 +154,7 @@ class sock_t {
                                         return false;
 
                                 else
-                                       if (rlen > len || rlen > std::numeric_limits< std::size_t >::max() - offset || rlen+offset > len)
+                                        if (rlen > len || rlen > std::numeric_limits< std::size_t >::max() - offset || rlen+offset > len)
                                                 throw std::runtime_error("sock_t::write(): Invalid state error (rlen)");
 
                                 offset += rlen;
@@ -163,4 +164,6 @@ class sock_t {
                         return true;
                 }
 };
-  
+
+
+#endif
