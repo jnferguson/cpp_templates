@@ -1,3 +1,5 @@
+// XXX runtime test me; connect() is wrong and i dont have time to look at it
+
 #ifndef HAVE_SOCKET_HPP
 #define HAVE_SOCKET_HPP
 
