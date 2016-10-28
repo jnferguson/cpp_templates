@@ -1,6 +1,4 @@
-// XXX runtime test me; connect() is wrong and i dont have time to look at it
-
-#ifndef HAVE_SOCKET_HPP
+ifndef HAVE_SOCKET_HPP
 #define HAVE_SOCKET_HPP
 
 #include <cstdint>
@@ -42,34 +40,49 @@ class sock_t {
                         signed int              ret(0);
                         struct addrinfo         hints = {0};
                         struct addrinfo*        sinfo(nullptr);
+                        struct addrinfo*        rp(nullptr);
 
                         hints.ai_family         = AF_UNSPEC;
                         hints.ai_socktype       = SOCK_STREAM;
                         hints.ai_flags          = AI_PASSIVE;
+                        hints.ai_protocol       = 0;
 
-                        if (::getaddrinfo(nullptr, p.c_str(), &hints, &sinfo))
+                        if (::getaddrinfo(h.c_str(), p.c_str(), &hints, &sinfo))
                                 return false;
 
 
-                        m_sock = ::socket(sinfo->ai_family, sinfo->ai_socktype, sinfo->ai_protocol);
+                        for (rp = sinfo; rp != nullptr; rp = rp->ai_next) {
+                                m_sock = ::socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
 
-                        if (0 > m_sock) {
-                                ret = errno;
-                                ::freeaddrinfo(sinfo);
-                                errno = ret;
-                                return false;
+                                if (0 > m_sock) {
+                                        ret = errno;
+                                        ::freeaddrinfo(sinfo);
+                                        errno = ret;
+                                        return false;
+                                }
+
+                                ret = ::connect(m_sock, rp->ai_addr, rp->ai_addrlen);
+
+                                if (0 > ret) {
+                                        ret = errno;
+                                        close(m_sock);
+                                        errno = ret;
+                                        m_sock = -1;
+                                } else
+                                        break;
+
                         }
 
-
-                        if (0 > ::connect(m_sock, sinfo->ai_addr, sinfo->ai_protocol)) {
+                        if (nullptr == rp || 0 > ret) {
                                 ret = errno;
                                 ::freeaddrinfo(sinfo);
+                                close(m_sock);
+                                m_sock = -1;
                                 errno = ret;
                                 return false;
                         }
 
                         ::freeaddrinfo(sinfo);
-                        return true;
                         return true;
                 }
 
@@ -81,7 +94,6 @@ class sock_t {
 
                         data.clear();
                         data.resize(len+1);
-
                         do {
                                 rlen = ::read(m_sock, &data[0], len);
 
@@ -144,10 +156,13 @@ class sock_t {
                         int64_t                 rlen(0);
 
                         do {
+                                errno = 0;
                                 rlen = ::write(m_sock, &data[0], data.size());
 
-                                if (0 > rlen)
+                                if (0 > rlen) {
+                                        printf("rlen: %d : %s\n", rlen, ::strerror(errno));
                                         return false;
+                                }
 
                                 else if (0 == rlen && 0 != offset)
                                         return true;
