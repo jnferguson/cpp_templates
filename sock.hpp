@@ -1,4 +1,4 @@
-ifndef HAVE_SOCKET_HPP
+#ifndef HAVE_SOCKET_HPP
 #define HAVE_SOCKET_HPP
 
 #include <cstdint>
