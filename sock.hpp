@@ -95,7 +95,7 @@ class sock_t {
                         data.clear();
                         data.resize(len+1);
                         do {
-                                rlen = ::read(m_sock, &data[0], len);
+                                rlen = ::read(m_sock, &data[offset], len-offset);
 
                                 if (0 > rlen)
                                         return false;
@@ -157,7 +157,7 @@ class sock_t {
 
                         do {
                                 errno = 0;
-                                rlen = ::write(m_sock, &data[0], data.size());
+                                rlen = ::write(m_sock, &data[offset], data.size()-offset);
 
                                 if (0 > rlen) {
                                         printf("rlen: %d : %s\n", rlen, ::strerror(errno));
