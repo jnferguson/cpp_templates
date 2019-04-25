@@ -106,7 +106,6 @@ hexdump_t::get_line(std::size_t cnt) const
         retval += fmt("%.32X    ", cnt);
     else if (LONG_MAX <= m_data.size())
         retval += fmt("%.16X    ", cnt);
-        retval += fmt("%.16X    ", cnt);
     else if (SHRT_MAX <= m_data.size())
         retval += fmt("%.8X    ", cnt);
     else
