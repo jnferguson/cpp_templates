@@ -25,12 +25,6 @@ class sock_t {
     private:
     protected:
         ssize_t m_sock;
-//#if defined(_MSC_VER)
-        //SOCKET m_sock;
-//#else
-  //      int64_t m_sock;
-//#endif
-
     public:
         sock_t(void) : m_sock(-1)
         {
