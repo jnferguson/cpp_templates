@@ -17,6 +17,15 @@
 #include <climits>
 #include <memory>
 
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
+#ifndef SSIZE_MAX
+#define SSIZE_MAX MAXSSIZE_T
+#endif
+
 class hexdump_t {
     private:
         std::vector< uint8_t >  m_data;
