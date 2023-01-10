@@ -98,7 +98,7 @@ hexdump_t::params(std::size_t len, std::size_t brk, unsigned char unp)
 inline std::string
 hexdump_t::get_line(std::size_t cnt) const
 {
-    const std::string   brk(' ', m_break);
+    const std::string   brk(m_break, ' ');
     unsigned char       unp(m_unprint);
     std::string         retval("");
 
