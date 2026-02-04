@@ -201,7 +201,9 @@ http_get_request_t::request_line(void)
 	std::size_t sz(m_parameters.size());
 
 	ret += m_uri;
-	ret += "?";
+
+	if (0 != sz)
+		ret += "?";
 
 	for (std::size_t idx = 0; idx < sz; idx++) {
 		if (nullptr != m_parameters[idx]) {
