@@ -119,15 +119,26 @@ http_client_socket_t::recv_headers(sock_t* sock, http_response_t& resp)
 	return true;
 }
 
-bool 
+bool
 http_client_socket_t::recv_body(sock_t* sock, http_response_t& resp)
 {
 	if (nullptr == sock)
 		return false;
 
+	if (http_version_t::HTTP_VERSION_11 > resp.version()) {
+		std::string body("");
+
+		if (false == sock->read_all(body))
+			return false;
+
+		resp.body(body);
+		return true;
+
+	}
+
 	if (true == resp.has_header("Content-Length")) {
 		std::size_t length(std::atoi(resp.get_header("Content-Length").c_str()));
-		std::string body;
+		std::string body("");
 
 		if (false == sock->read(body, length))
 			return false;
@@ -165,7 +176,7 @@ http_client_socket_t::recv_body(sock_t* sock, http_response_t& resp)
 	return true;
 }
 
-bool 
+bool
 http_client_socket_t::recv_resp(sock_t* sock, http_response_t& resp)
 {
 	if (false == recv_status_line(sock, resp))
@@ -179,21 +190,22 @@ http_client_socket_t::recv_resp(sock_t* sock, http_response_t& resp)
 }
 
 bool
-http_client_socket_t::get(std::string host, std::string uri, http_parameters_t& data, header_map_t& headers, http_response_t& resp, bool ssl, bool verify)
+http_client_socket_t::get(std::string host, std::string port, std::string uri, http_parameters_t& data, header_map_t& headers, http_response_t& resp, bool ssl, bool verify)
 {
-	http_get_request_t req(uri);
+	http_get_request_t	req(uri);
 	sock_t* sock(nullptr);
 
 	if (true == ssl && true == verify)
 		return false; // SSL certificate verification not implemented yet
 
 	if (true == ssl) {
-		sock = new ssl_sock_t;
+		throw std::runtime_error("SSL support unimplemented");
+		//sock = new ssl_sock_t;
 	}
 	else
 		sock = new sock_t;
 
-	if (false == sock->connect(host, ssl == true ? "443" : "80"))
+	if (false == sock->connect(host, port))
 		return false;
 
 	for (std::size_t idx = 0; idx < data.size(); idx++)
@@ -210,8 +222,8 @@ http_client_socket_t::get(std::string host, std::string uri, http_parameters_t& 
 	return true;
 }
 
-bool 
-http_client_socket_t::post(std::string host, std::string uri, http_parameters_t& data, header_map_t& headers, http_response_t& resp, http_content_type_t content_type, bool ssl, bool verify)
+bool
+http_client_socket_t::post(std::string host, std::string port, std::string uri, http_parameters_t& data, header_map_t& headers, http_response_t& resp, http_content_type_t content_type, bool ssl, bool verify)
 {
 	http_post_request_t req(uri);
 	sock_t* sock(nullptr);
@@ -220,11 +232,13 @@ http_client_socket_t::post(std::string host, std::string uri, http_parameters_t&
 		return false; // SSL certificate verification not implemented yet
 
 	if (true == ssl) {
-		sock = new ssl_sock_t;
-	} else
+		throw std::runtime_error("SSL support unimplemented");
+	//	sock = new ssl_sock_t;
+	}
+	else
 		sock = new sock_t;
 
-	if (false == sock->connect(host, ssl == true ? "443" : "80"))
+	if (false == sock->connect(host, port))
 		return false;
 
 	for (std::size_t idx = 0; idx < data.size(); idx++)
