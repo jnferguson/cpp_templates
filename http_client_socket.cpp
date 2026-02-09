@@ -205,20 +205,30 @@ http_client_socket_t::get(std::string host, std::string port, std::string uri, h
 	else
 		sock = new sock_t;
 
-	if (false == sock->connect(host, port))
+	if (false == sock->connect(host, port)) {
+		delete sock;
 		return false;
+	}
 
 	for (std::size_t idx = 0; idx < data.size(); idx++)
 		req.add_parameter(data[idx]);
 	for (header_map_t::const_iterator itr = headers.begin(); itr != headers.end(); itr++)
 		req.add_header(itr->first, itr->second);
 
-	if (false == sock->write(req.to_string()))
+	if (false == sock->write(req.to_string())) {
+		sock->close();
+		delete sock;
 		return false;
+	}
 
-	if (false == recv_resp(sock, resp))
+	if (false == recv_resp(sock, resp)) {
+		sock->close();
+		delete sock;
 		return false;
+	}
 
+	sock->close();
+	delete sock;
 	return true;
 }
 
@@ -248,11 +258,19 @@ http_client_socket_t::post(std::string host, std::string port, std::string uri, 
 
 	req.content_type(content_type);
 
-	if (false == sock->write(req.to_string()))
+	if (false == sock->write(req.to_string())) {
+		sock->close();
+		delete sock;
 		return false;
+	}
 
-	if (false == recv_resp(sock, resp))
+	if (false == recv_resp(sock, resp)) {
+		sock->close();
+		delete sock;
 		return false;
+	}
 
+	sock->close();
+	delete sock;
 	return true;
 }
