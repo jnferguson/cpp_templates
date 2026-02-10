@@ -107,7 +107,7 @@ http_request_t::request_headers(void)
 	std::string ret("");
 	std::size_t sz(m_headers.size());
 
-	for (std::map< std::string, std::string >::const_iterator itr = m_headers.begin(); itr != m_headers.end(); itr++)
+	for (std::unordered_map< std::string, std::string >::const_iterator itr = m_headers.begin(); itr != m_headers.end(); itr++)
 		ret += itr->first + ": " + itr->second + "\r\n";
 
 	return ret;
