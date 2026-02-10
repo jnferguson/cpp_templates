@@ -2,8 +2,10 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <unordered_map>
 
-typedef std::map< std::string, std::string > header_map_t;
+//typedef std::map< std::string, std::string > header_map_t;
+typedef std::unordered_map< std::string, std::string > header_map_t;
 
 enum class http_method_t
 {
